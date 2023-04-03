@@ -15,6 +15,7 @@
 const backspace = document.getElementById('backspace');
 const clear = document.getElementById('clear');
 const display = document.getElementById('displayScreen');
+const sDisplay = document.getElementById('displaySmall');
 const decimalP = document.getElementById('decimal');
 const wrapper = document.querySelectorAll('.section');
 
@@ -34,29 +35,41 @@ const operators = {
   '*': (a, b) => a * b,
   '/': (a, b) => a / b,
   '.': (a, b) => parseFloat(`${a}.${b}`),
-  // '%': (a, b = undefined) => {
-  //   if(b !== undefined){
-  //     return b / 100;
-  //   } else {
-  //     return a / 100;
-  //   }
-  // }, 
-  // '_': (a, b = undefined) => {
-  //   if(b !== undefined){
-  //     return b * -1;
-  //   } else { 
-  //     return a * -1;
-  //   }
-  //   }
+  '%': (a, b = undefined) => {
+    if(b !== undefined && b !== 0){
+      return b / 100;
+    } else if(b === 0){
+      return a /100;
+    } else {
+      return a / 100;
+    }
+  }, 
+  '_': (a, b = undefined) => {
+    if(b !== undefined && b !== 0){
+      return b * -1;
+    } else if (b === 0){
+      //for some reason B is getting replaced by zero when undefined
+      return -a;
+    } else { 
+      return a * -1;
+    }
+    }
 };
 
-//issues with percentage sign and negiatve sign when dealing with the 2nd character not the first. Behavior for first digit is working as intended
+//negative and percentage resolved, now need to focus on why the decimals are not working.
+//after setting decimals we can move onto enabling clicks
+//optional but a display of the equations and storage constantly would be useful.
+
 
 function calculate(operator, a, b) {
   const opFunc = operators[operator];
 
   result = opFunc(a, b);
+
   console.log(`${a} ${operator} ${b} = ${result}`);
+  sDisplay.innerText = `${a} ${operator} ${b} = ${result}`;
+
+
   display.innerText = result;
   return result;
 }
@@ -72,12 +85,20 @@ function clearAll() {
   sum = 0;
   chosenOperation = '';
   display.innerText = 0;
+  sDisplay.innerText = 0;
 }
 
 clear.addEventListener('click', clearAll);
 backspace.addEventListener('click', function() {
-  //take off the latest letter on the string
-})
+  // Remove the latest character from the string, issue with deleting only the first character also not permanant
+  if (result) {
+    let txt = result.toString();
+    txt = txt.includes('.') ? Math.floor(parseFloat(txt)).toString() : txt.substring(0, txt.length-1);
+    console.log(txt);
+
+    display.innerText = txt;
+  }
+});
 
 
 document.addEventListener('keydown', function (e) {
@@ -90,25 +111,23 @@ document.addEventListener('keydown', function (e) {
 
   } else if (
     e.key == '*' || e.key == '+' || e.key == '-' || e.key == '/' ||
-    e.key == '.' || e.key == '%' || e.key == '_') {
+    e.key == '.' || e.key == '%' || e.key == '_' ) {
 
     display.innerText = e.key;
     chosenOperation = e.key;
-    opStorage[0] = chosenOperation;
 
-    if(storage.length === 0 && e.key == '_'){
-      storage[0] = Number(numberHold) * -1;
-      aNumber = Number(numberHold) * -1;
-      console.log(storage);
-      numberHold = '';
-    }// 
+//maybe create a own function for decimals themeselves?    
 
-    if(storage.length === 0 && e.key == '%'){
-      storage[0] = Number(numberHold) / 100;
-      aNumber = Number(numberHold) /100;
-      console.log(storage);
-      numberHold = '';
-    }// 
+    if(opStorage.length === 1 && e.key === '_' && opStorage[1] !== '_'){
+      opStorage[1] = '_';
+    } else if(opStorage.length === 1 && e.key === '%' && opStorage[1] !== '%'){
+      opStorage[1] = '%';
+    } else {
+      opStorage[0] = chosenOperation;
+    }
+
+
+
 
     if(storage.length === 0){
         storage[0] = Number(numberHold);
@@ -119,17 +138,47 @@ document.addEventListener('keydown', function (e) {
     
     
   } else if (e.key == '=') {
+    // if(storage.length === 1 && storage[0] < -1){
+
+    // }
+
+    if (storage.length === 0) {
+      storage[0] = 0;
+      // storage[0] = Number(numberHold);
+      // aNumber = Number(numberHold);
+    }
+
       storage[1] = Number(numberHold);
       bNumber = Number(numberHold) 
       numberHold = '';
 
       //somewhere have the decimal and percentage here
-    if (storage.length === 2) {
-      result = calculate(opStorage[0], Number(storage[0]), Number(storage[1]));
+    if(storage.length === 2 && opStorage.length === 2 ){
+      if(opStorage[1] === '_'){
+        sum = calculate(opStorage[1], Number(storage[1]), 0)
+      } else if( opStorage[1] === '%'){
+        sum = calculate(opStorage[1], Number(storage[1]), 0)
+      }
+
+      
+      result = calculate(opStorage[0], Number(storage[0]), sum)
       storage = [result];
       opStorage = [];
       return (display.innerText = result);
 
+
+
+    
+    } else if (storage.length === 2 && opStorage.length === 1) { 
+      result = calculate(opStorage[0], Number(storage[0]), Number(storage[1]));
+      storage = [result];
+      opStorage = [];
+      return (display.innerText = result);
+    } else if (storage.length === 2){
+      result = Number(storage[0])
+      storage = [result];
+      opStorage = [];
+      return (display.innerText = result);
     } else {
       console.log('please enter Number + operator + number before entering');
     }
