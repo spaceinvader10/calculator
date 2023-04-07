@@ -6,7 +6,14 @@ const sDisplay = document.getElementById('displaySmall');
 const decimalP = document.getElementById('decimal');
 const wrapper = document.querySelectorAll('.section');
 
-const numberArr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+const negative = document.getElementById('negativeSign');
+const addition = document.getElementById('add');
+const subtraction = document.getElementById('subtract');
+const multiplication = document.getElementById('multiply');
+const division = document.getElementById('divide');
+const equals = document.getElementById('equal');
+
+
 let storage = [];
 let opStorage = [];
 let result = '';
@@ -14,6 +21,7 @@ let numberHold = '';
 let sum = 0;
 let aNumber = 0;
 let bNumber = 0;
+let cNumber = 0;
 let chosenOperation;
 
 const operators = {
@@ -22,13 +30,6 @@ const operators = {
   '*': (a, b) => a * b,
   '/': (a, b) => a / b,
   '.': (a, b) => parseFloat(`${a}.${b}`),
-//decimal functionality
-//a . b  = a.b
-// a.b + number = a.b + number result, works.
-//a.b + a.b = a.b number does not work.  because it's getting rewritten
-
-
-
   '%': (a, b = undefined) => {
     if(b !== undefined && b !== 0){
       return b / 100;
@@ -55,6 +56,7 @@ const operators = {
 //optional but a display of the equations and storage constantly would be useful.
 
 
+
 function calculate(operator, a, b) {
   const opFunc = operators[operator];
 
@@ -67,8 +69,6 @@ function calculate(operator, a, b) {
   } else {
     sDisplay.innerText = `${a} ${operator} ${b} = ${result}`;
   }
- 
-
 
   display.innerText = result;
   return result;
@@ -82,23 +82,99 @@ function clearAll() {
   numberHold = '';
   aNumber = '';
   bNumber = '';
+  cNumber = '';
   sum = 0;
   chosenOperation = '';
   display.innerText = 0;
   sDisplay.innerText = 'Empty';
 }
 
-clear.addEventListener('click', clearAll);
-// backspace.addEventListener('click', function() {
-//   // Remove the latest character from the string, issue with deleting only the first character also not permanant
-//   if (result) {
-//     let txt = result.toString();
-//     txt = txt.includes('.') ? Math.floor(parseFloat(txt)).toString() : txt.substring(0, txt.length-1);
-//     console.log(txt);
 
-//     display.innerText = txt;
-//   }
-// });
+
+function stepBack() {
+
+  if(result){
+    if(!storage[1]){
+      if(result !== aNumber){
+        let text = aNumber.toString();
+        text = text.substring(0, text.length-1);
+        cNumber = Number(text);
+        storage[1] = Number(text);
+        result = Number(text);
+        display.innerText = text;
+      } else {
+        text = result.toString();
+        text = text.substring(0, text.length-1);
+        cNumber = Number(text);
+        aNumber = cNumber;
+
+        if(cNumber == 0){
+          text = 0;
+        }
+        storage[0] = Number(text);
+        result = Number(text);
+        display.innerText = text;
+      }
+      
+    } 
+
+      if(storage.length == 2 && opStorage.length == 1){
+        result = calculate(opStorage[0], storage[0], storage[1]);
+        return storage = [result];
+      } else if (storage.length ==1){
+        return storage =[result];
+      }
+
+  }  else if (aNumber && !cNumber) {
+      let txt = aNumber.toString();
+        txt = txt.substring(0, txt.length-1);
+        aNumber = Number(txt);
+        console.log(txt + 'is aNumb cnumber exists');
+        storage.push(Number(txt));
+      
+      display.innerText = Number(txt);
+
+      if(storage.length == 2 && opStorage.length == 1){
+        result = calculate(opStorage[0], storage[0], storage[1]);
+        return storage = [result];
+      } else if (storage.length == 1){
+        result = storage[0]
+        return storage = [result];
+      }
+    }
+  
+};
+
+
+function pressedKey(key){
+  return function(){
+    const event = new KeyboardEvent('keydown', {key});
+    document.dispatchEvent(event)
+  }
+}
+
+
+
+clear.addEventListener('click', clearAll);
+backspace.addEventListener('click', stepBack);
+division.addEventListener('click', pressedKey('/'));
+addition.addEventListener('click', pressedKey('+') );
+subtraction.addEventListener('click', pressedKey('-'));
+multiplication.addEventListener('click', pressedKey('*'));
+decimalP.addEventListener('click', pressedKey('.'));
+negative.addEventListener('click', pressedKey('_'));
+equals.addEventListener('click', pressedKey('='))
+
+const numberButtons = Array.from(document.querySelectorAll('.number'));
+//this assigns button 0-9 event listeners
+for(let i = 0; i < numberButtons.length; i++){
+  const btn = numberButtons[i];
+  const key = btn.textContent;
+  btn.addEventListener('click', pressedKey(key))
+}
+
+
+
 
 
 document.addEventListener('keydown', function (e) {
@@ -125,9 +201,7 @@ document.addEventListener('keydown', function (e) {
       
     bNumber = numberHold;
     
-      // if(opStorage.length ===1 && e.key === '.' && opStorage[0] != '.'){
-      //   opStorage[1] = '.';
-      // } 
+    
     
     
     }
@@ -138,6 +212,8 @@ document.addEventListener('keydown', function (e) {
     e.key == '*' || e.key == '+' || e.key == '-' || e.key == '/' ||
     e.key == '%' || e.key == '_' ) {
 
+    e.preventDefault()
+    //this stops the annoying ctrl f when clicking '/' in mozzilla. Praise the lord!
     display.innerText = e.key;
     chosenOperation = e.key;
 
@@ -147,6 +223,14 @@ document.addEventListener('keydown', function (e) {
       opStorage[1] = '_';
     } else if(opStorage.length === 1 && e.key === '%' && opStorage[1] !== '%'){
       opStorage[1] = '%';
+
+    //  Disabled for now due, only enabling 2nd check for the above two cases
+    // } else if (opStorage.length === 1 && e.key === '*' && opStorage[0] !== '*'){
+    //   opStorage[1] = '*';
+    // } else if (opStorage.length === 1 && e.key === '/' && opStorage[0] !== '/'){
+    //   opStorage[1] = '/';
+    // } 
+    
     } else {
       opStorage[0] = chosenOperation;
     }
@@ -159,9 +243,13 @@ document.addEventListener('keydown', function (e) {
         numberHold = '';
     } 
 
+    cNumber = numberHold;
+    numberHold = '';
+    
 
+  
 
-  } else if (e.key == '=') {
+  } else if (e.key == '=' || e.key == 'Enter') {
 
       if(storage.length > 2){
         storage[1] = storage[2];
@@ -185,7 +273,16 @@ document.addEventListener('keydown', function (e) {
         result = calculate(opStorage[0], Number(storage[0]), sum);
       } else if( opStorage[1] === '.'){
         result = calculate(opStorage[0], Number(storage[0]), Number(storage[1]));
-      }
+      } 
+      
+      // Disabled for now prt2, part of the code for mid number calculation in a middle of an expression
+      //   else if (opStorage[1] === '*'){
+      //   sum = calculate(opStorage[1], Number(aNumber), Number(cNumber));
+      //   result = calculate(opStorage[0], Number(storage[0]), sum);
+      // } else if (opStorage[1] === '/'){
+      //   sum = calculate(opStorage[1], Number(cNumber), Number(aNumber));
+      //   result = calculate(opStorage[0], Number(storage[0]), sum);
+      // }
       
       
       storage = [result];
@@ -211,125 +308,14 @@ document.addEventListener('keydown', function (e) {
         result =  storage[0];
         storage = [result]
       }
-      // if(opStorage.length === 0){
-      //   console.log('please enter Number + operator + number before pressing equal');
-      //   sDisplay.innerText = 'Please enter Number + Operator + Number before pressing Equal!';
-      // } else {
-      //   console.log('calculating result: ' + result)
-      //   sDisplay.innerText = `calculating result:   ${result}`;
-      //   storage = [result]
-      // }
-      
+
     }
-  } 
+  } else if (e.key == 'c'){
+    clearAll();
+  } else if (e.key == 'Backspace'){
+    stepBack();
+  }
 });
-
-  
-
-    // for(i = 0; i < wrapper.length; i++){
-    //     //this is the querySelectAll sections nodelist
-    //     wrapper[i].addEventListener('click', (event)=> {
-            
-    //     let number1;
-        
-
-    //     const isButton = event.target.nodeName === 'BUTTON';
-    //     if(!isButton){
-    //         return;
-    //     }
-
-    //     if (event.target.id === 'decimal'){
-    //         opStorage[0] = '.';      
-
-    //     } else if(!isNaN(event.target.innerText)) {
-    //         //if the innerText is not not a number
-    //         sum = event.target.innerText;
-    //         currentNumber += sum;
-    //         //display.innerText = currentNumber;
-    //         // console.log(currentNumber)
-
-    //         if(!storage[0] && currentNumber){
-    //             storage[0] = Number(currentNumber);
-    //         // console.log(storage)
-    //         } else if (ans && !storage[0]){
-    //             storage[0] = ans;
-    //         } else if(storage[0] && !storage[1]){
-    //             storage[1] = Number(currentNumber);
-    //         } else {
-    //             storage.length = 0;
-    //         // storage[0] = Number(currentNumber);
-    //         }
-    //     }   else if (event.target.id === 'equal'){  
-    //             if(opStorage.length === 0 && storage.length ===1){
-    //                 // console.log(storage[0])
-    //                 //this is if they press equal after having a single digit
-    //                 return; 
-    //             }
-
-    //             if (opStorage.length === 1 && storage.length === 1){ 
-    //                 if(ans){      
-    //                     storage[1] = storage[0];
-    //                     storage[0] = ans;
-    //                     result = calculate(opStorage[0], storage[0], storage[1])
-    //                     console.log('running')
-    //                 } else {
-    //                     result = calculate(opStorage[0], storage[0], storage[1])
-    //                     console.log('running 2')
-    //                 }   
-    //                 return display.innerText = result
-    //             }
-    //             else if (opStorage.length === 1 && storage.length > 1){
-    //                 if(!ans){
-    //                     ans = calculate(opStorage[0], storage[0],storage[1]);
-    //                     return display.innerText = ans;
-    //                 } else {
-    //                     result = calculate(opStorage[0], ans, storage[1]);
-    //                     return display.innerText = result;
-    //                 }
-                    
-    //             }  else if(opStorage[0] === '.' && storage.length === 1){
-    //                 result = calculate(opStorage[0], 0, storage[0])
-    //                 return display.innerText = result;
-    //             }            
-    //         }
-    //         else if (!event.target.innerText){
-            
-    //         if(event.target.id === 'add'){
-    //             opStorage[0] = '+';
-    //             storage[0] = currentNumber;
-    //             currentNumber = '';
-    //         } else if (event.target.id === 'subtract'){
-    //             opStorage[0] = '-';
-    //         } else if (event.target.id === 'multiply'){
-    //             opStorage[0] = '*';
-    //         } else if (event.target.id === 'divide'){
-    //             opStorage[0] = '/';
-    //         } else if (event.target.id === 'percent'){
-    //             opStorage[0] = '%';
-    //         } else if (event.target.id === 'negativeSign'){
-    //             opStorage[0] = '_';
-    //         } 
-    //         //display the operator
-           
-    //         return display.innerText = opStorage[0];
-
-    //     } 
-            
-    //        // return display.innerText = currentNumber;
-    //     if(number1 == 'add' || number1 == 'subtract' || number1 == 'multiply' || 
-    //     number1 == 'divide' || number1  == 'percent' || number1 == 'decimal' || number1 == 'negativeSign'){
-    //         number1 = opStorage[0];
-    //     }
-    //     // display.innerText = currentNumber;
-    //     display.innerText = currentNumber;
-    //     // console.log(chosenOperation)
-    //     })
-    // }
-
-
-
-
-
 
 
 
