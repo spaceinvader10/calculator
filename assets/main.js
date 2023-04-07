@@ -93,6 +93,8 @@ function clearAll() {
 
 function stepBack() {
 
+  //issue with decimal subtraction, backspace will not delete the number
+
   if(result){
     if(!storage[1]){
       if(result !== aNumber){
@@ -127,10 +129,22 @@ function stepBack() {
 
   }  else if (aNumber && !cNumber) {
       let txt = aNumber.toString();
+
+      if(txt.includes('.')){
+        if(txt.length === 1){
+          txt = 0;
+        } else {
+          txt = txt.substring(0, txt.indexOf('.'));
+        }
+        
+        aNumber = Number(txt);
+      } else if (txt.length > 1){
         txt = txt.substring(0, txt.length-1);
         aNumber = Number(txt);
-        console.log(txt + 'is aNumb cnumber exists');
-        storage.push(Number(txt));
+      }
+      
+      console.log(txt + 'is aNumb cnumber exists');
+      storage.push(Number(txt));
       
       display.innerText = Number(txt);
 
