@@ -21,7 +21,7 @@ let numberHold = '';
 let sum = 0;
 let aNumber = 0;
 let bNumber = 0;
-let cNumber = 0;
+
 let chosenOperation;
 
 const operators = {
@@ -51,12 +51,6 @@ const operators = {
     }
 };
 
-//negative and percentage resolved, now need to focus on why the decimals are not working.
-//after setting decimals we can move onto enabling clicks
-//optional but a display of the equations and storage constantly would be useful.
-
-
-
 function calculate(operator, a, b) {
   const opFunc = operators[operator];
 
@@ -82,7 +76,7 @@ function clearAll() {
   numberHold = '';
   aNumber = '';
   bNumber = '';
-  cNumber = '';
+ 
   sum = 0;
   chosenOperation = '';
   display.innerText = 0;
@@ -90,74 +84,15 @@ function clearAll() {
 }
 
 
-
 function stepBack() {
-
-  //issue with decimal subtraction, backspace will not delete the number
-
-  if(result){
-    if(!storage[1]){
-      if(result !== aNumber){
-        let text = aNumber.toString();
-        text = text.substring(0, text.length-1);
-        cNumber = Number(text);
-        storage[1] = Number(text);
-        result = Number(text);
-        display.innerText = text;
-      } else {
-        text = result.toString();
-        text = text.substring(0, text.length-1);
-        cNumber = Number(text);
-        aNumber = cNumber;
-
-        if(cNumber == 0){
-          text = 0;
-        }
-        storage[0] = Number(text);
-        result = Number(text);
-        display.innerText = text;
-      }
-      
-    } 
-
-      if(storage.length == 2 && opStorage.length == 1){
-        result = calculate(opStorage[0], storage[0], storage[1]);
-        return storage = [result];
-      } else if (storage.length ==1){
-        return storage =[result];
-      }
-
-  }  else if (aNumber && !cNumber) {
-      let txt = aNumber.toString();
-
-      if(txt.includes('.')){
-        if(txt.length === 1){
-          txt = 0;
-        } else {
-          txt = txt.substring(0, txt.indexOf('.'));
-        }
-        
-        aNumber = Number(txt);
-      } else if (txt.length > 1){
-        txt = txt.substring(0, txt.length-1);
-        aNumber = Number(txt);
-      }
-      
-      console.log(txt + 'is aNumb cnumber exists');
-      storage.push(Number(txt));
-      
-      display.innerText = Number(txt);
-
-      if(storage.length == 2 && opStorage.length == 1){
-        result = calculate(opStorage[0], storage[0], storage[1]);
-        return storage = [result];
-      } else if (storage.length == 1){
-        result = storage[0]
-        return storage = [result];
-      }
-    }
-  
-};
+  if(result) {
+    storage = [result];
+  } else if (aNumber) {
+    aNumber = aNumber.toString().slice(0, -1);
+    storage = [Number(aNumber)];
+    display.innerText = aNumber || 0;
+  }
+}
 
 
 function pressedKey(key){
@@ -199,8 +134,6 @@ document.addEventListener('keydown', function (e) {
 
     console.log('the number chosen is: ' + number);
     aNumber = numberHold;
-
-
     
     if (e.key == '.' ) {
       chosenOperation = '.';
@@ -212,12 +145,7 @@ document.addEventListener('keydown', function (e) {
         return result;
       }
       
-      
-    bNumber = numberHold;
-    
-    
-    
-    
+    bNumber = numberHold;   
     }
    
 
@@ -231,20 +159,9 @@ document.addEventListener('keydown', function (e) {
     display.innerText = e.key;
     chosenOperation = e.key;
 
-//maybe create a own function for decimals themeselves?    
 
-    if(opStorage.length === 1 && e.key === '_' && opStorage[1] !== '_'){
-      opStorage[1] = '_';
-    } else if(opStorage.length === 1 && e.key === '%' && opStorage[1] !== '%'){
-      opStorage[1] = '%';
-
-    //  Disabled for now due, only enabling 2nd check for the above two cases
-    // } else if (opStorage.length === 1 && e.key === '*' && opStorage[0] !== '*'){
-    //   opStorage[1] = '*';
-    // } else if (opStorage.length === 1 && e.key === '/' && opStorage[0] !== '/'){
-    //   opStorage[1] = '/';
-    // } 
-    
+    if (opStorage.length === 1 && (e.key === '%' || e.key === '_')) {
+      opStorage[1] = e.key;
     } else {
       opStorage[0] = chosenOperation;
     }
@@ -257,7 +174,6 @@ document.addEventListener('keydown', function (e) {
         numberHold = '';
     } 
 
-    cNumber = numberHold;
     numberHold = '';
     
 
@@ -288,17 +204,7 @@ document.addEventListener('keydown', function (e) {
       } else if( opStorage[1] === '.'){
         result = calculate(opStorage[0], Number(storage[0]), Number(storage[1]));
       } 
-      
-      // Disabled for now prt2, part of the code for mid number calculation in a middle of an expression
-      //   else if (opStorage[1] === '*'){
-      //   sum = calculate(opStorage[1], Number(aNumber), Number(cNumber));
-      //   result = calculate(opStorage[0], Number(storage[0]), sum);
-      // } else if (opStorage[1] === '/'){
-      //   sum = calculate(opStorage[1], Number(cNumber), Number(aNumber));
-      //   result = calculate(opStorage[0], Number(storage[0]), sum);
-      // }
-      
-      
+
       storage = [result];
       opStorage = [];
       return (display.innerText = result);
